@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Waystone Comm</title>
+  <meta name="description" content="Waystone Comm is a keyboard-driven communications terminal for Linux inspired by ProComm Plus and built for BBS and remote terminal users.">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #181d1d;
+      --panel: #222828;
+      --panel-soft: #283030;
+      --text: #f1f5f2;
+      --muted: #a4b1ad;
+      --cyan: #19cbbb;
+      --cyan-dim: #0f8d83;
+      --orange: #ff9b22;
+      --green: #22e25b;
+      --border: #11bdae;
+      --shadow: rgba(0, 0, 0, 0.35);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      border-bottom: 1px solid rgba(25, 203, 187, 0.35);
+      background: #111616;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 64px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      color: var(--cyan);
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 400;
+    }
+
+    nav {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      font-size: 0.95rem;
+    }
+
+    main {
+      padding: 40px 0 56px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.4fr);
+      gap: 28px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      color: var(--cyan);
+      font-size: clamp(2.25rem, 6vw, 4.5rem);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .tagline {
+      margin: 0 0 18px;
+      color: var(--text);
+      font-size: 1.2rem;
+    }
+
+    .summary {
+      margin: 0 0 24px;
+      color: var(--muted);
+      max-width: 62ch;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid var(--border);
+      background: var(--cyan);
+      color: #071111;
+      font-weight: 700;
+    }
+
+    .button.secondary {
+      background: transparent;
+      color: var(--cyan);
+    }
+
+    .screenshot {
+      border: 2px solid var(--border);
+      background: var(--panel);
+      box-shadow: 0 18px 48px var(--shadow);
+    }
+
+    .screenshot img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    section {
+      margin-top: 44px;
+    }
+
+    h2 {
+      display: inline-block;
+      margin: 0 0 18px;
+      padding: 2px 8px;
+      background: var(--cyan);
+      color: #071111;
+      font-size: 1.05rem;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid rgba(25, 203, 187, 0.45);
+      background: var(--panel);
+      padding: 16px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      color: var(--orange);
+      font-size: 1rem;
+    }
+
+    .card p,
+    .card ul {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    li + li {
+      margin-top: 6px;
+    }
+
+    .callout {
+      border: 1px solid var(--orange);
+      background: #2b261f;
+      padding: 18px;
+    }
+
+    .callout strong {
+      color: var(--orange);
+    }
+
+    .terminal {
+      overflow-x: auto;
+      border: 1px solid rgba(25, 203, 187, 0.45);
+      background: #101414;
+      padding: 16px;
+      color: var(--green);
+    }
+
+    code,
+    pre {
+      font-family: inherit;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre;
+    }
+
+    footer {
+      border-top: 1px solid rgba(25, 203, 187, 0.35);
+      padding: 24px 0;
+      color: var(--muted);
+      background: #111616;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 860px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 16px 0;
+      }
+
+      nav {
+        justify-content: flex-start;
+      }
+
+      .hero,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap topbar">
+      <div class="brand">Waystone Comm <span>v0.3.0-rc.1</span></div>
+      <nav aria-label="Primary navigation">
+        <a href="#features">Features</a>
+        <a href="#beta">Beta</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="https://github.com/njb1966/waystone-comm">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <h1 id="title">Waystone Comm</h1>
+        <p class="tagline">A keyboard-driven communications terminal for Linux.</p>
+        <p class="summary">
+          Inspired by ProComm Plus and built for people who still connect to BBSes,
+          door games, SSH hosts, Telnet systems, serial devices, and other remote
+          terminal services.
+        </p>
+        <div class="actions">
+          <a class="button" href="https://github.com/njb1966/waystone-comm/releases/tag/v0.3.0-rc.1">Download RC</a>
+          <a class="button secondary" href="https://github.com/njb1966/waystone-comm">View Source</a>
+        </div>
+      </div>
+      <figure class="screenshot">
+        <img src="screenshots/waystone-comm-dialing-directory-v0.3.0-rc.1.png" alt="Waystone Comm dialing directory with grouped SSH, Telnet, and door server entries">
+      </figure>
+    </section>
+
+    <section id="features" aria-labelledby="features-title">
+      <h2 id="features-title">Current RC</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Connections</h3>
+          <p>SSH, Telnet, Serial, and Raw TCP sessions with tabbed terminal workflows.</p>
+        </article>
+        <article class="card">
+          <h3>ANSI-BBS</h3>
+          <p>CP437 BBS art rendering, xterm-style ANSI support, and stable 80-column BBS layouts.</p>
+        </article>
+        <article class="card">
+          <h3>Dialing Directory</h3>
+          <p>Grouped entries, search, editing, credentials, emulation settings, and legacy SSH mode.</p>
+        </article>
+        <article class="card">
+          <h3>Transfers</h3>
+          <p>Zmodem upload and download workflows, plus tested X/Y/Zmodem transfer core code.</p>
+        </article>
+        <article class="card">
+          <h3>Credentials</h3>
+          <p>Encrypted password, token, and SSH key credentials with script access and log redaction.</p>
+        </article>
+        <article class="card">
+          <h3>Automation</h3>
+          <p>Rhai entry scripts, script editor, login templates, session logs, history, and key maps.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="beta" aria-labelledby="beta-title">
+      <h2 id="beta-title">Beta Testers</h2>
+      <div class="callout">
+        <p>
+          <strong>Waystone Comm is looking for 3-5 experienced beta testers.</strong>
+          The best testers actively use SSH, Telnet, ANSI BBSes, door games, and
+          classic file transfers. The goal is real-world compatibility feedback,
+          not a quick first-run impression.
+        </p>
+      </div>
+      <div class="grid" style="margin-top: 14px;">
+        <article class="card">
+          <h3>Test</h3>
+          <ul>
+            <li>SSH and Telnet BBS logins</li>
+            <li>ANSI art and door screens</li>
+            <li>Zmodem upload and download</li>
+            <li>Directory, credentials, scripts, logs, and history</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Report</h3>
+          <ul>
+            <li>BBS or host name</li>
+            <li>Protocol and emulation</li>
+            <li>Terminal/window size</li>
+            <li>Expected and actual behavior</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Debug</h3>
+          <p>
+            Screenshots, transfer traces, and raw captures are especially useful
+            for rendering and Zmodem bugs.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="install" aria-labelledby="install-title">
+      <h2 id="install-title">Install</h2>
+      <div class="terminal">
+        <pre>sudo apt-get install -y libssl-dev pkg-config libdbus-1-dev libudev-dev
+git clone https://github.com/njb1966/waystone-comm
+cd waystone-comm
+cargo build --release
+target/release/waystone-comm</pre>
+      </div>
+    </section>
+
+    <section id="roadmap" aria-labelledby="roadmap-title">
+      <h2 id="roadmap-title">Roadmap</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>v0.3.x</h3>
+          <p>Beta feedback, BBS compatibility hardening, transfer reliability, and documentation cleanup.</p>
+        </article>
+        <article class="card">
+          <h3>v0.4.x</h3>
+          <p>Packaging work, install/update documentation, and cleaner release automation.</p>
+        </article>
+        <article class="card">
+          <h3>Future Protocols</h3>
+          <p>Gemini and Gopher support, likely starting with external launchers for amfora, bombadillo, and lynx.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      Waystone Comm is MIT licensed and currently in pre-1.0 release-candidate testing.
+    </div>
+  </footer>
+</body>
+</html>
