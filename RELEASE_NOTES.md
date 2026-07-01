@@ -1,9 +1,10 @@
 # Waystone Comm Release Notes
 
-## v0.3.0-rc.1 - 2026-06-30
+## v0.3.0-rc.2 - 2026-06-30
 
-This is the first Phase 2 release candidate. It is intended for real BBS
-testing from a source or tarball build before cutting `v0.3.0`.
+This is the second Phase 2 release candidate. It carries the Waystone Comm
+rename and is intended for real BBS testing from a source or tarball build
+before cutting `v0.3.0`.
 
 ### Highlights
 

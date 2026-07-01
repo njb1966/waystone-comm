@@ -4,28 +4,27 @@ Last updated: 2026-06-30
 
 ## Current State
 
-Waystone Comm is at `v0.3.0-rc.1`, intended for a small real-world beta with
+Waystone Comm is at `v0.3.0-rc.2`, intended for a small real-world beta with
 experienced BBS/terminal users.
 
 The GitHub default branch is:
 
 ```text
-phase2/dialing-directory-ui
+main
 ```
 
 The current release is:
 
 ```text
-https://github.com/njb1966/waystone-comm/releases/tag/v0.3.0-rc.1
+https://github.com/njb1966/waystone-comm/releases/tag/v0.3.0-rc.2
 ```
 
-The release tag points at the rewritten, cleaned history. The current default
-branch may be ahead of the release tag by documentation-only commits; no code
-change has been made after the RC tag.
+The Waystone Comm repository was re-imported under the new name. Cut new RC tags
+from `main`; do not reuse local tags from the old pre-rename history.
 
 ## Verified Before Beta
 
-Release gates passed for `v0.3.0-rc.1`:
+Release gates passed for `v0.3.0-rc.2` before beta publication:
 
 - `cargo fmt --check`
 - `cargo test --workspace`
@@ -173,8 +172,8 @@ When beta feedback comes in:
    cargo build --release
    ```
 
-7. If code changes are needed after `v0.3.0-rc.1`, cut `v0.3.0-rc.2` rather
-   than moving the existing RC tag again.
+7. If code changes are needed after `v0.3.0-rc.2`, cut a new RC rather than
+   moving an existing RC tag.
 
 ## Notes For Future Us
 

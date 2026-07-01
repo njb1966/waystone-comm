@@ -3,9 +3,9 @@
 Waystone Comm is a keyboard-driven communications terminal for Linux, inspired by
 ProComm Plus and focused on real BBS and remote terminal use.
 
-Current release candidate: **v0.3.0-rc.1**.
+Current release candidate: **v0.3.0-rc.2**.
 
-![Waystone Comm dialing directory](docs/screenshots/waystone-comm-dialing-directory-v0.3.0-rc.1.png)
+![Waystone Comm dialing directory](docs/screenshots/waystone-comm-dialing-directory-v0.3.0-rc.2.png)
 
 Waystone Comm currently supports SSH, Telnet, Serial, and Raw TCP sessions; tabbed
 terminal use; ANSI/xterm and CP437 ANSI-BBS rendering; dialing-directory
@@ -57,7 +57,7 @@ Not included in this RC:
 
 ## Roadmap
 
-Waystone Comm is currently in the `v0.3.0-rc.1` beta cycle. The immediate goal is
+Waystone Comm is currently in the `v0.3.0-rc.2` beta cycle. The immediate goal is
 stability, BBS compatibility, transfer reliability, and workflow polish before
 cutting `v0.3.0`.
 
@@ -108,10 +108,10 @@ target/release/waystone-comm
 
 ### Release Tarball
 
-The `v0.3.0-rc.1` prerelease provides a Linux x86_64 tarball:
+The `v0.3.0-rc.2` prerelease provides a Linux x86_64 tarball:
 
 ```text
-waystone-comm-v0.3.0-rc.1-linux-x86_64.tar.gz
+waystone-comm-v0.3.0-rc.2-linux-x86_64.tar.gz
 ```
 
 Verify it with the matching `.sha256` file from the GitHub release page.
