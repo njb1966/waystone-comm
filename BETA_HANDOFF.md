@@ -144,7 +144,9 @@ Treat as high priority:
 
 Defer until after `v0.3.0`:
 
-- New protocols
+- New terminal protocols
+- Native Gemini, Gopher, Spartan, or web browsing; those belong in Waystone
+  Browser, with future handoff integration from Waystone Comm
 - GUI wrapper
 - Packaging beyond the tarball
 - AI features

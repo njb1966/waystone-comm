@@ -95,17 +95,15 @@ When a user asks you to work on Waystone Comm, follow this workflow:
 | Upgrade directory to SQLite | ✅ | history.db: session_logs + connection_history; begin/end_session wiring in app; TOML last_connected migration |
 | BBS compatibility recovery | ✅ | Mystic A-Net SSH, Dead Parrot SSH, Retroboard Telnet, and The Bottomless Abyss SSH validated; raw capture replay added |
 
-### Phase 3 — Modern Protocols (Target: v0.6.0)
+### Phase 3 — Waystone Browser Integration & Protocol Polish (Target: v0.6.0)
 | Deliverable | Status | Notes |
 |---|---|---|
+| Waystone Browser handoff | ⬜ | Open Gemini, Gopher, Spartan, HTTP, and HTTPS links in Waystone Browser |
 | Mosh | ⬜ | |
 | Rlogin | ⬜ | |
-| Gemini browser | ⬜ | |
-| Gopher browser | ⬜ | |
 | IRC client | ⬜ | |
 | NNTP client | ⬜ | |
 | Finger protocol | ⬜ | |
-| HTTP/HTTPS minimal | ⬜ | |
 | WebSocket | ⬜ | |
 | SFTP file browser | ⬜ | |
 
@@ -521,7 +519,7 @@ Replace Phase 1 TOML-only directory with hybrid storage:
 
 ---
 
-### 🔧 PHASE 3 — Modern Protocols
+### 🔧 PHASE 3 — Waystone Browser Integration & Protocol Polish
 
 **MASTERPLAN reference:** §5 (all subsections), §8.1 (protocol table)
 
@@ -531,30 +529,21 @@ Replace Phase 1 TOML-only directory with hybrid storage:
 - File transfer working for at least Zmodem + Xmodem
 - Full tabbed session UI working
 
-**Step 3.1 — Gemini Protocol**
+**Step 3.1 — Waystone Browser Handoff**
 
-Reference: MASTERPLAN §5.3
+Reference: MASTERPLAN §5.2
 
-Gemini is the highest-value modern protocol for Waystone Comm's audience. Build this first.
+Do not implement native Gemini, Gopher, Spartan, HTTP, or HTML browsing in
+Waystone Comm. Those protocols belong in Waystone Browser.
 
-1. TLS connection to port 1965 (Gemini requires TLS)
-2. Certificate TOFU: store fingerprints in `~/.config/waystone-comm/gemini_certs.toml`
-3. Gemtext parser: `#` headings, `=>` links, `>` quotes, ` ``` ` preformatted, `*` list
-4. Gemini browser UI (see §5.3 layout): URL bar, navigation history, link list
-5. Bookmark management integrated with dialing directory (protocol = "gemini")
-6. Keyboard navigation: number keys to follow links, `[`/`]` for history
+1. Detect `gemini://`, `gopher://`, `spartan://`, `http://`, and `https://`
+   links in terminal output or quick-connect input.
+2. Launch Waystone Browser through a configurable command.
+3. Keep handoff optional and transparent.
+4. Consider reverse handoff later: Waystone Browser can launch `ssh://` and
+   `telnet://` targets in Waystone Comm.
 
-**Step 3.2 — Gopher Protocol**
-
-Reference: MASTERPLAN §5.4
-
-Simpler than Gemini. Implement:
-1. RFC 1436 menu parsing (tab-separated item type, label, selector, host, port)
-2. Navigate menus, fetch text documents, download binaries
-3. Search (type 7) support
-4. Shared "Small Web" browser mode: Gemini + Gopher in the same tab type
-
-**Step 3.3 — IRC Client**
+**Step 3.2 — IRC Client**
 
 Reference: MASTERPLAN §5.5
 
@@ -565,9 +554,9 @@ Reference: MASTERPLAN §5.5
 5. Logging: per-channel, same format as session logging
 6. SASL PLAIN and EXTERNAL auth methods
 
-**Step 3.4 — Mosh**
+**Step 3.3 — Mosh**
 
-Reference: MASTERPLAN §5.1
+Reference: MASTERPLAN §5.3
 
 Mosh requires `mosh-server` on the remote host. This is an acceptable dependency — document clearly.
 
@@ -576,7 +565,7 @@ Mosh requires `mosh-server` on the remote host. This is an acceptable dependency
 3. Roaming: handle IP address changes gracefully
 4. Surface as a connection type in dialing directory: `protocol = "mosh"` (falls back to SSH)
 
-**Step 3.5 — NNTP (Usenet)**
+**Step 3.4 — NNTP (Usenet)**
 
 Reference: MASTERPLAN §5.6
 
@@ -587,28 +576,27 @@ Reference: MASTERPLAN §5.6
 5. Article caching for offline reading: store in `~/.config/waystone-comm/nntp_cache/`
 6. Posting support (compose in a simple TUI editor)
 
-**Step 3.6 — SFTP File Browser**
+**Step 3.5 — SFTP File Browser**
 
-Reference: MASTERPLAN §5.10
+Reference: MASTERPLAN §5.9
 
 This lives inside the SSH session — it's a mode switch, not a new protocol.
 
-1. Two-pane file browser (see §5.10 layout)
-2. Operations: copy, move, mkdir, delete, rename (F5-F8 as shown in §5.10)
+1. Two-pane file browser (see §5.9 layout)
+2. Operations: copy, move, mkdir, delete, rename
 3. Tab switches focus between local and remote pane
 4. Progress indicator for transfers (reuse file transfer progress widget)
 5. Integrated into SSH session: hotkey `Ctrl+F` to open file browser for current session
 
-**Step 3.7 — Remaining Protocols**
+**Step 3.6 — Remaining Protocols**
 
-Reference: MASTERPLAN §5.7, §5.8, §5.9
+Reference: MASTERPLAN §5.4, §5.7, §5.8
 
 Implement in this order (all are relatively small):
 1. **Finger** (§5.7) — 30–50 lines, RFC 1288
-2. **HTTP/HTTPS minimal** (§5.8) — use `reqwest` crate, expose as scriptable API
-3. **WebSocket** (§5.9) — use `tokio-tungstenite` crate
-4. **Rlogin** (§5.2) — RFC 1282, flag as legacy/insecure in UI
-5. **FTP/FTPS** (§8.1) — use `suppaftp` crate
+2. **WebSocket** (§5.8) — use `tokio-tungstenite` crate
+3. **Rlogin** (§5.4) — RFC 1282, flag as legacy/insecure in UI
+4. **FTP/FTPS** (§8.1) — use `suppaftp` crate
 
 ---
 
@@ -618,7 +606,7 @@ Implement in this order (all are relatively small):
 
 **Before starting Phase 4, confirm:**
 - All Phase 3 deliverables are ✅
-- At minimum: SSH, Telnet, Gemini, IRC all working and tested
+- At minimum: SSH, Telnet, Waystone Browser handoff, and IRC all working and tested
 
 **Step 4.1 — AI Client Module**
 
@@ -669,7 +657,8 @@ Reference: MASTERPLAN §6.2 (Smart Connect row)
 
 When user types in quick-connect bar:
 1. If input matches `user@host` or `host:port` patterns → infer SSH
-2. If input starts with `gemini://` → open Gemini browser
+2. If input starts with `gemini://`, `gopher://`, `spartan://`, `http://`, or
+   `https://` → hand off to Waystone Browser
 3. If input starts with `telnet://` or port 23 → open Telnet
 4. Otherwise: send host + port to AI → get protocol suggestion
 5. AI suggestion shown as non-blocking suggestion, user confirms
@@ -884,9 +873,9 @@ let context = AIContext {
 | Key mapping and macro system | §4.6 |
 | Session logging formats | §4.7 |
 | Credential storage architecture | §4.8, §10.3 |
-| Gemini protocol spec | §5.3 |
+| Waystone Browser handoff | §5.2 |
 | IRC client features | §5.5 |
-| SFTP file browser layout | §5.10 |
+| SFTP file browser layout | §5.9 |
 | AI feature list and triggers | §6.2 |
 | AI privacy settings | §6.4 |
 | Plugin architecture | §7.1 |

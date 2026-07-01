@@ -4,11 +4,10 @@
 
 ---
 
-> **Vision:** Waystone Comm is a spiritual successor to ProComm Plus — a universal,
-> keyboard-driven terminal application that unifies every major communications
-> protocol under one roof, revives the best UX patterns of the DOS golden age,
-> and layers modern AI assistance on top. It is open source, cross-platform,
-> and built to last.
+> **Vision:** Waystone Comm is a spiritual successor to ProComm Plus — a
+> keyboard-driven terminal communications application for SSH, Telnet, Serial,
+> Raw TCP, BBS workflows, scripts, logging, and file transfers. It complements
+> Waystone Browser, which owns Gemini, Gopher, Spartan, and web browsing.
 
 ---
 
@@ -29,10 +28,12 @@ terminal-rendering debugging.
 
 The next work should harden usability rather than expand scope. Treat broader
 BBS compatibility testing, docs accuracy, and small UX fixes as active Phase 2
-work. Treat Gemini, Gopher, IRC, NNTP, Mosh, SFTP browser, AI features,
-packaging, plugins, theming, and GUI wrapper as deferred.
+work. Native Gemini, Gopher, Spartan, and web browsing are out of scope for
+Waystone Comm because they belong in Waystone Browser; future work should focus
+on link handoff between the apps. Treat IRC, NNTP, Mosh, SFTP browser, AI
+features, packaging, plugins, theming, and GUI wrapper as deferred.
 
-Release candidate `v0.3.0-rc.1` is the first Phase 2 RC. It is intended for
+Release candidate `v0.3.0-rc.2` is the current Phase 2 RC. It is intended for
 source/tarball testers and live BBS soak testing, not broad packaged
 distribution yet.
 
@@ -48,7 +49,7 @@ section are updated in the same change.
 2. [Architecture](#2-architecture)
 3. [Phase 1 — Core Engine](#3-phase-1--core-engine)
 4. [Phase 2 — ProComm Feature Parity](#4-phase-2--procomm-feature-parity)
-5. [Phase 3 — Modern Protocols](#5-phase-3--modern-protocols)
+5. [Phase 3 — Waystone Browser Integration & Protocol Polish](#5-phase-3--waystone-browser-integration--protocol-polish)
 6. [Phase 4 — AI Integration Layer](#6-phase-4--ai-integration-layer)
 7. [Phase 5 — Polish & Ecosystem](#7-phase-5--polish--ecosystem)
 8. [Protocol Reference](#8-protocol-reference)
@@ -66,9 +67,9 @@ section are updated in the same change.
 
 ### 1.1 Goals
 
-- Provide a single application for ALL common terminal/communications protocols
+- Provide a focused application for terminal communications protocols and BBS workflows
 - Recreate the ProComm Plus UX: dialing directory, F-key macros, ASPECT-style scripting, session logging
-- Add modern capabilities: tabbed sessions, true-color, Unicode, AI assistance
+- Add modern capabilities: tabbed sessions, true-color, Unicode, Waystone app handoff, and optional AI assistance
 - Ship as a native TUI (terminal UI) application with an optional GUI wrapper
 - Cross-platform: Linux (primary), macOS, Windows (WSL and native)
 - 100% open source (MIT License)
@@ -78,6 +79,7 @@ section are updated in the same change.
 - Full graphical remote desktop (RDP/VNC rendering) — protocol support yes, display no
 - Mobile clients
 - Cloud sync (planned for post-v1.0)
+- Native Gemini, Gopher, Spartan, or HTML/web browsing; those belong in Waystone Browser
 
 ### 1.3 Name & Identity
 
@@ -125,7 +127,7 @@ section are updated in the same change.
 │         │                                                         │
 │  ┌──────┴────────────────────────────────────────────┐           │
 │  │              Protocol Implementations              │           │
-│  │  SSH │ Telnet │ Serial │ Raw │ Gemini │ Gopher │...│           │
+│  │       SSH │ Telnet │ Serial │ Raw TCP │ ...       │           │
 │  └───────────────────────────────────────────────────┘           │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -515,62 +517,58 @@ Secure local credential storage:
 
 ---
 
-## 5. Phase 3 — Modern Protocols
+## 5. Phase 3 — Waystone Browser Integration & Protocol Polish
 
-**Goal:** Extend Waystone Comm beyond classic protocols into the modern and alternative internet.
+**Goal:** Keep Waystone Comm focused on terminal communication while integrating
+cleanly with the broader Waystone app line.
 **Target milestone:** v0.6.0
-**Estimated scope:** ~6,000–9,000 additional lines
+**Estimated scope:** ~2,000–4,000 additional lines before any large new protocol
 
-### 5.1 Mosh (Mobile Shell)
+### 5.1 Product Boundary
+
+Waystone Browser owns document/navigation protocols:
+
+- Gemini
+- Gopher
+- Spartan
+- HTTP/HTTPS and HTML/web browsing
+
+Waystone Comm should not duplicate those native browser features. Its core
+territory remains terminal communications:
+
+- SSH
+- Telnet
+- Serial
+- Raw TCP
+- ANSI/BBS workflows
+- dialing directory entries
+- credentials, scripts, logs, history, and X/Y/Zmodem transfers
+
+### 5.2 Waystone Browser Handoff
+
+Future integration should route browser-style links to Waystone Browser instead
+of implementing native renderers inside Waystone Comm:
+
+- Open `gemini://`, `gopher://`, `spartan://`, `http://`, and `https://` links
+  in Waystone Browser.
+- Let Waystone Browser hand `ssh://`, `telnet://`, and BBS-oriented links back
+  to Waystone Comm where appropriate.
+- Provide a small launcher abstraction instead of hard-coding one binary name.
+- Keep URL handoff optional and transparent; Waystone Comm must remain usable as
+  a standalone terminal client.
+
+### 5.3 Mosh (Mobile Shell)
 
 - SSH-like but uses UDP, handles roaming and connection interruption
 - Requires `mosh-server` on remote — document this dependency
 - Seamless handoff when IP changes (laptop lid close/open)
 - Integrate with existing SSH directory entries (auto-fallback)
 
-### 5.2 Rlogin
+### 5.4 Rlogin
 
 - RFC 1282 implementation
 - Marked as legacy/insecure in UI
 - Primarily for connecting to old Unix systems
-
-### 5.3 Gemini Protocol
-
-Gemini is a modern minimalist protocol (RFC-like spec at gemini.circumlunar.space).
-
-**Waystone Comm Gemini client features:**
-- Full Gemini protocol implementation (TLS required)
-- Gemtext renderer in terminal (styled, no graphics)
-- Bookmark management (integrated with dialing directory)
-- History navigation (back/forward)
-- Link following with keyboard navigation
-- Certificate Trust On First Use (TOFU)
-- Capsule (Gemini site) discovery
-
-**Gemini UI:**
-```
-┌─ GEMINI: gemini://example.space/page ─────────────────────┐
-│ ← → [Bookmarks] [History]                                  │
-├────────────────────────────────────────────────────────────┤
-│                                                            │
-│  # Welcome to My Capsule                                   │
-│                                                            │
-│  This is a Gemini page rendered in Waystone Comm.               │
-│                                                            │
-│  [1] About Me                                              │
-│  [2] My Projects                                           │
-│  [3] Contact                                               │
-│                                                            │
-│  Press 1-9 or Enter on link to follow                      │
-└────────────────────────────────────────────────────────────┘
-```
-
-### 5.4 Gopher Protocol
-
-- RFC 1436 implementation
-- Menu navigation
-- Document types: text, binary, image (display path), search
-- Integration with Gemini browser (combined "small web" mode)
 
 ### 5.5 IRC Client
 
@@ -602,20 +600,13 @@ A built-in IRC client is a natural fit for the terminal-centric community Waysto
 - Query user info on remote systems
 - Small but satisfying to include for completeness
 
-### 5.8 HTTP/HTTPS (Minimal)
-
-Not a full browser, but enough to:
-- Check status of a URL (HEAD request)
-- Fetch plain text / API responses (useful in scripts)
-- Download files (for scripting use)
-
-### 5.9 WebSocket (Raw)
+### 5.8 WebSocket (Raw)
 
 - Connect to WebSocket endpoints
 - Useful for connecting to modern services and IoT
 - Pairs well with scripting engine
 
-### 5.10 SFTP File Browser
+### 5.9 SFTP File Browser
 
 A full two-pane file browser accessible from any SSH session:
 
@@ -788,8 +779,7 @@ An optional graphical wrapper for users who prefer a native GUI:
 | Raw TCP | any | TCP | None | None | Phase 1 |
 | Rlogin | 513 | TCP | Host-based | None | Phase 2 |
 | Mosh | 60000+ | UDP | SSH bootstrap | None | Phase 3 |
-| Gemini | 1965 | TLS | Cert (optional) | None | Phase 3 |
-| Gopher | 70 | TCP | None | Binary download | Phase 3 |
+| Browser handoff | varies | external app | varies | Browser-owned | Phase 3 |
 | IRC | 6667/6697 | TCP/TLS | NickServ/SASL | DCC | Phase 3 |
 | NNTP | 119/563 | TCP/TLS | Password | Attachments | Phase 3 |
 | SFTP | 22 | TCP/TLS | SSH | Full filesystem | Phase 2 |
@@ -1073,7 +1063,7 @@ Log excerpt:
 
 ### 13.1 Unit Tests
 
-- Protocol parsers: Telnet option negotiation, terminal escape sequences, Gemini response parsing
+- Protocol parsers: Telnet option negotiation, terminal escape sequences, URL handoff detection
 - Terminal emulator: vttest compliance suite
 - Script engine: all built-in functions, error handling, sandboxing
 - Dialing directory: CRUD, import/export, search

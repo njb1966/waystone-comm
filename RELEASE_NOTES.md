@@ -38,5 +38,7 @@ Abyss SSH BBS upload testing.
 
 - This RC ships as a Linux x86_64 tarball artifact, not a `.deb`, AppImage, or
   Homebrew package.
-- Gemini, Gopher, IRC, NNTP, Mosh, SFTP browser, AI features, GUI wrapper,
-  plugins, and packaging remain deferred.
+- Native Gemini, Gopher, Spartan, and web browsing belong in Waystone Browser,
+  not Waystone Comm. Future work may add handoff integration between the apps.
+- IRC, NNTP, Mosh, SFTP browser, AI features, GUI wrapper, plugins, and
+  packaging remain deferred.

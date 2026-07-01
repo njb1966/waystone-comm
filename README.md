@@ -51,7 +51,9 @@ Not included in this RC:
 
 - Native packages such as `.deb`, AppImage, Homebrew, or Flatpak.
 - GUI wrapper.
-- Gemini, Gopher, IRC, NNTP, Mosh, SFTP browser, or FTP UI.
+- Native Gemini, Gopher, Spartan, or web browsing. Those protocols belong in
+  Waystone Browser.
+- IRC, NNTP, Mosh, SFTP browser, or FTP UI.
 - AI features.
 - Python scripting.
 
@@ -68,17 +70,17 @@ Planned future work:
 - `v0.4.x`: packaging work such as `.deb` and AppImage, install/update
   documentation, and cleaner release automation.
 - `v0.5.x`: broader protocol polish and possible expansion beyond the current
-  SSH/Telnet/Serial/Raw TCP core.
-- Future protocol work: Gemini and Gopher support. The first step will likely
-  be external launcher integration for tools such as amfora, bombadillo, and
-  lynx, followed by native browsing support if user demand and project scope
-  justify it.
+  SSH/Telnet/Serial/Raw TCP core where it strengthens terminal communication.
+- Future Waystone Browser integration: hand off `gemini://`, `gopher://`,
+  `spartan://`, `http://`, and `https://` links to Waystone Browser instead of
+  duplicating browser features in Waystone Comm.
 - Later releases: optional GUI wrapper, plugin/theming support, and other
   larger features after the terminal core is stable.
 
-Gemini and Gopher are planned future protocols, but are not part of the current
-release candidate. IRC, NNTP, Mosh, SFTP browser, AI assistance, and larger UI
-expansions remain later-stage ideas.
+Gemini, Gopher, Spartan, and web browsing are intentionally out of scope for
+Waystone Comm because they are native Waystone Browser responsibilities. IRC,
+NNTP, Mosh, SFTP browser, AI assistance, and larger UI expansions remain
+later-stage ideas.
 
 ## Install
 
