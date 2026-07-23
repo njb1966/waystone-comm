@@ -1,5 +1,14 @@
 # Waystone Comm Release Notes
 
+## Unreleased
+
+### Changed
+
+- New Telnet and raw TCP directory entries default to `ansi-bbs` emulation
+  instead of `xterm-256color`; SSH and serial entries keep `xterm-256color`.
+- The Emulation field in the entry form is now a Left/Right selector that
+  follows the chosen protocol until you pick a value yourself.
+
 ## v0.3.0-rc.2 - 2026-06-30
 
 This is the second Phase 2 release candidate. It carries the Waystone Comm
