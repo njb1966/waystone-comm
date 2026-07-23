@@ -85,7 +85,7 @@ enum ConnectProtocol {
         /// host or host:port
         target: String,
         /// Terminal emulation (xterm-256color, vt100, ansi-bbs)
-        #[arg(long, default_value = "xterm-256color")]
+        #[arg(long, default_value = "ansi-bbs")]
         emulation: String,
     },
     /// Connect via serial port.
@@ -116,7 +116,7 @@ enum ConnectProtocol {
         /// host:port
         target: String,
         /// Terminal emulation (xterm-256color, vt100, ansi-bbs)
-        #[arg(long, default_value = "xterm-256color")]
+        #[arg(long, default_value = "ansi-bbs")]
         emulation: String,
     },
 }

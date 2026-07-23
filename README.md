@@ -153,14 +153,19 @@ waystone-comm list
 
 ## Terminal Emulation
 
-Use `--emulation ansi-bbs` for classic CP437 BBS systems. This mode translates
-IBM CP437 high bytes into Unicode line and block glyphs while preserving ANSI
-cursor movement and color handling. It also caps the BBS drawing canvas at 80
-columns so wide local terminals do not break ANSI art layouts.
+New Telnet and raw TCP entries use `ansi-bbs` by default, because most classic
+BBSes send CP437 art. New SSH and serial entries use `xterm-256color` by default.
+You can change the mode with the `--emulation` option, or with the Left and Right
+arrow keys on the Emulation field when you create or edit a directory entry.
 
-Use the default xterm mode for UTF-8 systems. Dead Parrot BBS is one known case
-where `xterm-256color` is the better choice because the system emits UTF-8 block
-and box drawing characters.
+`ansi-bbs` translates IBM CP437 high bytes into Unicode line and block glyphs
+while preserving ANSI cursor movement and color handling. It also caps the BBS
+drawing canvas at 80 columns so wide local terminals do not break ANSI art
+layouts.
+
+Use `xterm-256color` for UTF-8 systems. Dead Parrot BBS is one known case where
+`xterm-256color` is the better choice, because the system emits UTF-8 block and
+box drawing characters.
 
 For old SSH BBS servers, add `--legacy-ssh`.
 

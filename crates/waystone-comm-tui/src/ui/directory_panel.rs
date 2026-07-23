@@ -9,7 +9,7 @@ use ratatui::{
 use uuid::Uuid;
 use waystone_comm_core::{
     connection::Protocol,
-    directory::{Directory, DirectoryEntry},
+    directory::{default_emulation_for_protocol, Directory, DirectoryEntry},
 };
 
 // ── Row type (flat list built from grouped entries) ───────────────────────────
@@ -28,7 +28,16 @@ struct EntryForm {
     focused: usize,
     error: Option<String>,
     editing_id: Option<Uuid>,
+    /// Set once the user cycles the emulation selector, after which the
+    /// protocol field no longer overrides their explicit choice.
+    emulation_touched: bool,
 }
+
+const PROTOCOL_FIELD: usize = 1;
+const EMULATION_FIELD: usize = 5;
+
+/// Emulation values offered by the Left/Right selector, in cycle order.
+const EMULATION_CHOICES: [&str; 4] = ["ansi-bbs", "xterm-256color", "vt100", "vt220"];
 
 const FORM_LABELS: [&str; 8] = [
     "Name",
@@ -36,7 +45,7 @@ const FORM_LABELS: [&str; 8] = [
     "Host / serial device",
     "Port (optional)",
     "Username (optional)",
-    "Emulation (xterm-256color/vt100/ansi-bbs)",
+    "Emulation (←/→)",
     "Credential UUID (optional)",
     "Legacy SSH (yes/no)",
 ];
@@ -44,9 +53,11 @@ const FORM_LABELS: [&str; 8] = [
 impl EntryForm {
     fn new_entry() -> Self {
         let mut form = Self::default();
-        form.fields[1] = "ssh".into();
-        form.fields[5] = "xterm-256color".into();
+        form.fields[PROTOCOL_FIELD] = "ssh".into();
         form.fields[7] = "no".into();
+        // Selector starts on the protocol default (xterm for ssh here) and
+        // tracks the protocol field until the user cycles it manually.
+        form.sync_emulation_from_protocol();
         form
     }
 
@@ -64,7 +75,10 @@ impl EntryForm {
             .map(|p| p.to_string())
             .unwrap_or_default();
         form.fields[4] = entry.connection.username.clone().unwrap_or_default();
-        form.fields[5] = entry.terminal.emulation.clone();
+        form.fields[EMULATION_FIELD] = canonical_emulation(&entry.terminal.emulation)
+            .unwrap_or("xterm-256color")
+            .into();
+        form.emulation_touched = true;
         form.fields[6] = entry
             .credential_id
             .map(|id| id.to_string())
@@ -82,12 +96,51 @@ impl EntryForm {
     }
 
     fn handle_char(&mut self, c: char) {
+        if self.focused == EMULATION_FIELD {
+            return; // selector field — use Left/Right
+        }
         self.current_field_mut().push(c);
         self.error = None;
+        if self.focused == PROTOCOL_FIELD {
+            self.sync_emulation_from_protocol();
+        }
     }
 
     fn handle_backspace(&mut self) {
+        if self.focused == EMULATION_FIELD {
+            return; // selector field — use Left/Right
+        }
         self.current_field_mut().pop();
+        self.error = None;
+        if self.focused == PROTOCOL_FIELD {
+            self.sync_emulation_from_protocol();
+        }
+    }
+
+    /// Reset the emulation selector to the protocol default, unless the user
+    /// has already chosen a value manually.
+    fn sync_emulation_from_protocol(&mut self) {
+        if self.emulation_touched {
+            return;
+        }
+        let proto = protocol_from_field(&self.fields[PROTOCOL_FIELD]);
+        self.fields[EMULATION_FIELD] = default_emulation_for_protocol(&proto).into();
+    }
+
+    /// Step the emulation selector to the next/previous choice.
+    fn cycle_emulation(&mut self, forward: bool) {
+        let len = EMULATION_CHOICES.len();
+        let cur = EMULATION_CHOICES
+            .iter()
+            .position(|&c| c == self.fields[EMULATION_FIELD])
+            .unwrap_or(0);
+        let next = if forward {
+            (cur + 1) % len
+        } else {
+            (cur + len - 1) % len
+        };
+        self.fields[EMULATION_FIELD] = EMULATION_CHOICES[next].into();
+        self.emulation_touched = true;
         self.error = None;
     }
 
@@ -149,19 +202,13 @@ impl EntryForm {
         if !username.is_empty() {
             entry.connection.username = Some(username);
         }
-        let emulation = self.fields[5].trim().to_lowercase();
+        let emulation = self.fields[5].trim();
         if !emulation.is_empty() {
-            entry.terminal.emulation = match emulation.as_str() {
-                "xterm" | "xterm-256color" | "xterm-256" => "xterm-256color".into(),
-                "vt100" => "vt100".into(),
-                "vt220" => "vt220".into(),
-                "ansi" | "ansi-bbs" | "ansi_bbs" | "ansibbs" | "bbs" => "ansi-bbs".into(),
-                other => {
-                    return Err(format!(
-                        "Unknown emulation: '{other}' (use xterm-256color/vt100/ansi-bbs)"
-                    ))
-                }
-            };
+            entry.terminal.emulation = canonical_emulation(emulation)
+                .ok_or_else(|| {
+                    format!("Unknown emulation: '{emulation}' (use xterm-256color/vt100/ansi-bbs)")
+                })?
+                .into();
         }
         let credential_id = self.fields[6].trim();
         if !credential_id.is_empty() {
@@ -179,6 +226,28 @@ impl EntryForm {
             entry.connection.extra.remove("legacy_ssh");
         }
         Ok(entry)
+    }
+}
+
+/// Lenient parse of the free-text protocol field for live emulation defaults.
+/// Unknown or partial input is treated as SSH (validated for real in build_entry).
+fn protocol_from_field(s: &str) -> Protocol {
+    match s.trim().to_lowercase().as_str() {
+        "telnet" => Protocol::Telnet,
+        "serial" => Protocol::Serial,
+        "raw" => Protocol::Raw,
+        _ => Protocol::Ssh,
+    }
+}
+
+/// Map an emulation string (including aliases) to its canonical form, or None.
+fn canonical_emulation(s: &str) -> Option<&'static str> {
+    match s.trim().to_lowercase().as_str() {
+        "xterm" | "xterm-256color" | "xterm-256" => Some("xterm-256color"),
+        "vt100" => Some("vt100"),
+        "vt220" => Some("vt220"),
+        "ansi" | "ansi-bbs" | "ansi_bbs" | "ansibbs" | "bbs" => Some("ansi-bbs"),
+        _ => None,
     }
 }
 
@@ -494,6 +563,12 @@ impl DirectoryPanel {
                     }
                     KeyCode::BackTab | KeyCode::Up => {
                         form.prev_field();
+                    }
+                    KeyCode::Left if form.focused == EMULATION_FIELD => {
+                        form.cycle_emulation(false);
+                    }
+                    KeyCode::Right if form.focused == EMULATION_FIELD => {
+                        form.cycle_emulation(true);
                     }
                     KeyCode::F(5) => {
                         return PanelAction::OpenCredentials;
@@ -1044,13 +1119,19 @@ impl DirectoryPanel {
                 Style::default().fg(Color::DarkGray)
             };
             let value = &form.fields[i];
-            let cursor = if focused { "_" } else { "" };
+            let display = if i == EMULATION_FIELD {
+                if focused {
+                    format!("‹ {value} ›")
+                } else {
+                    value.clone()
+                }
+            } else {
+                let cursor = if focused { "_" } else { "" };
+                format!("{value}{cursor}")
+            };
             lines.push(Line::from(vec![
                 Span::styled(format!("{label:<36}: "), label_style),
-                Span::styled(
-                    format!("{value}{cursor}"),
-                    Style::default().fg(Color::White),
-                ),
+                Span::styled(display, Style::default().fg(Color::White)),
             ]));
             lines.push(Line::from(""));
         }
@@ -1156,8 +1237,44 @@ mod tests {
         let form = EntryForm::new_entry();
 
         assert_eq!(form.fields[1], "ssh");
-        assert_eq!(form.fields[5], "xterm-256color");
+        assert_eq!(form.fields[EMULATION_FIELD], "xterm-256color");
         assert_eq!(form.fields[7], "no");
+    }
+
+    #[test]
+    fn entry_form_emulation_follows_protocol_until_touched() {
+        let mut form = EntryForm::new_entry();
+        assert_eq!(form.fields[EMULATION_FIELD], "xterm-256color");
+
+        // Typing the protocol updates the selector default.
+        form.focused = PROTOCOL_FIELD;
+        form.current_field_mut().clear();
+        for c in "telnet".chars() {
+            form.handle_char(c);
+        }
+        assert_eq!(form.fields[EMULATION_FIELD], "ansi-bbs");
+
+        // Manually cycling pins the choice; protocol no longer overrides it.
+        form.focused = EMULATION_FIELD;
+        form.cycle_emulation(true); // ansi-bbs -> xterm-256color
+        assert_eq!(form.fields[EMULATION_FIELD], "xterm-256color");
+
+        form.focused = PROTOCOL_FIELD;
+        form.current_field_mut().clear();
+        for c in "raw".chars() {
+            form.handle_char(c);
+        }
+        assert_eq!(form.fields[EMULATION_FIELD], "xterm-256color");
+    }
+
+    #[test]
+    fn entry_form_cycle_emulation_wraps_both_directions() {
+        let mut form = EntryForm::new_entry();
+        form.fields[EMULATION_FIELD] = "ansi-bbs".into();
+        form.cycle_emulation(false); // wrap backward to last choice
+        assert_eq!(form.fields[EMULATION_FIELD], "vt220");
+        form.cycle_emulation(true); // wrap forward to first choice
+        assert_eq!(form.fields[EMULATION_FIELD], "ansi-bbs");
     }
 
     #[test]

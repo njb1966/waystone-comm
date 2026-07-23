@@ -25,7 +25,8 @@ pub struct DirectoryEntry {
     /// Connection-specific settings.
     pub connection: ConnectionSettings,
 
-    /// Terminal emulation override (defaults to xterm-256color).
+    /// Terminal emulation override. New entries default per protocol
+    /// (see `default_emulation_for_protocol`).
     pub terminal: TerminalSettings,
 
     /// Optional credential manager UUID reference. Never store the secret here.
@@ -55,10 +56,23 @@ pub struct DirectoryEntry {
     pub log: LogSettings,
 }
 
+/// Default terminal emulation for a freshly created entry of this protocol.
+///
+/// Telnet and raw TCP are almost always classic BBSes that send CP437 art,
+/// so they default to `ansi-bbs`. Everything else defaults to `xterm-256color`.
+#[must_use]
+pub fn default_emulation_for_protocol(protocol: &Protocol) -> &'static str {
+    match protocol {
+        Protocol::Telnet | Protocol::Raw => "ansi-bbs",
+        _ => "xterm-256color",
+    }
+}
+
 impl DirectoryEntry {
     /// Create a new entry with required fields and sensible defaults.
     #[must_use]
     pub fn new(name: impl Into<String>, protocol: Protocol, host: impl Into<String>) -> Self {
+        let emulation = default_emulation_for_protocol(&protocol).into();
         Self {
             id: Uuid::new_v4(),
             name: name.into(),
@@ -70,7 +84,10 @@ impl DirectoryEntry {
                 username: None,
                 extra: HashMap::new(),
             },
-            terminal: TerminalSettings::default(),
+            terminal: TerminalSettings {
+                emulation,
+                ..TerminalSettings::default()
+            },
             credential_id: None,
             tags: Vec::new(),
             notes: None,
